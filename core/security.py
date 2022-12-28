@@ -1,31 +1,41 @@
 
-# from datetime import datetime, timedelta
-# from typing import Any, Union
-
-# from sqlalchemy.orm import Session
-
-# from registration_apis import models
-
-
-
-# def verify_password(plain_password: str, db: Session) -> bool:
-#     password =  db.query(models.User).filter(models.User.email == ).first()
+from datetime import datetime, timedelta
+from typing import Any, Union
+from jose import jwt
+from sqlalchemy.orm import Session
+from core.config import ACCESS_TOKEN_EXPIRE_MINUTES,ALGORITHM, REFRESH_TOKEN_EXPIRE_MINUTES,SECRET_KEY,REFRESH_SECRET_KEY
+from passlib.context import CryptContext
+from registration_apis import models
+password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-# def create_access_token(
-#     data: dict, expires_delta: timedelta = None
-# ) -> str:
-#     if expires_delta:
-#         expire = datetime.utcnow() + expires_delta
-#     else:
-#         expire = datetime.utcnow() + timedelta(
-#             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-#         )
-#     to_encode = data.copy()
-#     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
-#     return encoded_jwt
 
 
-# def verify_password(plain_password: str, hashed_password: str) -> bool:
-#     return pwd_context.verify(plain_password, hashed_password)
+def get_hashed_password(password: str) -> str:
+    return password_context.hash(password)
 
+
+def verify_password(password: str, hashed_pass: str) -> bool:
+    return password_context.verify(password, hashed_pass)
+
+
+def create_access_token(subject: Union[str, Any], expires_delta: int = None) -> str:
+    if expires_delta is not None:
+        expires_delta = datetime.utcnow() + expires_delta
+    else:
+        expires_delta = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    to_encode = {"exp": expires_delta, "sub": str(subject)}
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
+    return encoded_jwt
+
+
+def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) -> str:
+    if expires_delta is not None:
+        expires_delta = datetime.utcnow() + expires_delta
+    else:
+        expires_delta = datetime.utcnow() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    
+    to_encode = {"exp": expires_delta, "sub": str(subject)}
+    encoded_jwt = jwt.encode(to_encode, REFRESH_SECRET_KEY, ALGORITHM)
+    return encoded_jwt
