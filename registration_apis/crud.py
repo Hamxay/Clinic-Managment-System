@@ -98,9 +98,9 @@ def authenticate(db: Session, user_details: OAuth2PasswordRequestForm):
 
 
 def delete_registration(registration_id, db: Session):
-    registration = db.query(models.Registration.id == registration_id)
+    registration = db.query(models.Registration).filter(models.Registration.id == registration_id).first()
     if not registration:
-        raise HTTPException(status_code=404, detail="Hero not found")
+        raise HTTPException(status_code=404, detail="No Details found")
     db.delete(registration)
     db.commit()
     return {"ok": True}
