@@ -1,14 +1,25 @@
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 from core.deps import get_current_user
-from core.security import create_access_token, create_refresh_token, verify_password
 from registration_apis import schemas, models, crud, database
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 models.Base.metadata.create_all(bind=database.engine)
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 app = FastAPI()
 
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_db():
     db = database.SessionLocal()
